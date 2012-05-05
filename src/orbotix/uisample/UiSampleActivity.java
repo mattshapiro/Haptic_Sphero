@@ -49,7 +49,7 @@ public class UiSampleActivity extends ControllerActivity
     /**
      * Multiplier for turning collision vectors into vibration durations
      */
-    private final static int FUDGE_FACTOR = 1;
+    private final static int FUDGE_FACTOR = 2;
 
     /**
      * The Robot to control
@@ -172,7 +172,7 @@ public class UiSampleActivity extends ControllerActivity
         }
         
         // Assume that collision detection is configured and disable it.
-     	ConfigureCollisionDetectionCommand.sendCommand(mRobot, ConfigureCollisionDetectionCommand.DISABLE_DETECTION_METHOD, 0, 0, 0, 0, 0);
+     	ConfigureCollisionDetectionCommand.sendCommand(mRobot, ConfigureCollisionDetectionCommand.DISABLE_DETECTION_METHOD, 0, 0, 0, 0, 1);
      		
  		// Remove async data listener
  		DeviceMessenger.getInstance().removeAsyncDataListener(mRobot, mCollisionListener);
