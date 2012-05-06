@@ -2,11 +2,15 @@ package orbotix.uisample;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 
 import android.view.View;
+import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import orbotix.robot.app.ColorPickerActivity;
 import orbotix.robot.app.StartupActivity;
 import orbotix.robot.base.CollisionDetectedAsyncData;
@@ -17,6 +21,7 @@ import orbotix.robot.base.DeviceMessenger;
 import orbotix.robot.base.RGBLEDOutputCommand;
 import orbotix.robot.base.Robot;
 import orbotix.robot.base.RobotProvider;
+import orbotix.robot.base.StabilizationCommand;
 import orbotix.robot.base.DeviceMessenger.AsyncDataListener;
 import orbotix.robot.sensor.Acceleration;
 import orbotix.robot.widgets.ControllerActivity;
@@ -39,7 +44,7 @@ public class UiSampleActivity extends ControllerActivity
     /**
      * Collision threshhold for vibration
      */
-    private final static int COLLISION_THRESHOLD = 35;
+    private final static int COLLISION_THRESHOLD = 25;
     
     /**
      * Speed thresshold to avoid vibration during direction changes
@@ -51,12 +56,14 @@ public class UiSampleActivity extends ControllerActivity
      */
     private final static int FUDGE_FACTOR = 2;
 
+	private static final int CHAMELEON_ACTIVITY = 2;
+
     /**
      * The Robot to control
      */
     private Robot mRobot;
    
-    private CheckBox hapticCheck;
+    private CheckBox hapticCheck, stabilizeCheck;
     private boolean isHapticEnabled = true;
     
     //Colors
@@ -81,6 +88,10 @@ public class UiSampleActivity extends ControllerActivity
         
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         
+        if(!checkCameraHardware(this)) {
+        	((Button)findViewById(R.id.chameleonButton)).setVisibility(Button.GONE);
+        }
+        
         //Add the JoystickView as a Controller
         addController((JoystickView)findViewById(R.id.joystick));
 
@@ -92,6 +103,20 @@ public class UiSampleActivity extends ControllerActivity
         
         hapticCheck = (CheckBox)findViewById(R.id.hapticCheck);
         hapticCheck.setChecked(true);
+        
+        stabilizeCheck = (CheckBox)findViewById(R.id.stabilizeButton);
+        stabilizeCheck.setChecked(true);
+        stabilizeCheck.setOnCheckedChangeListener(new OnCheckedChangeListener(){
+
+			@Override
+			public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+				if(mRobot != null){
+					StabilizationCommand.sendCommand(mRobot, isChecked);
+				}
+			}
+		
+        });
+        
         addController(mSlideToSleepView);
     }
 
@@ -101,10 +126,11 @@ public class UiSampleActivity extends ControllerActivity
     @Override
     protected void onStart() {
         super.onStart();
-        
-        //Start StartupActivity to connect to Robot
-        Intent i = new Intent(this, StartupActivity.class);
-        startActivityForResult(i, STARTUP_ACTIVITY);
+        if(mRobot==null){
+	        //Start StartupActivity to connect to Robot
+	        Intent i = new Intent(this, StartupActivity.class);
+	        startActivityForResult(i, STARTUP_ACTIVITY);
+        }
     }
 
     private final AsyncDataListener mCollisionListener = new AsyncDataListener() {
@@ -128,27 +154,18 @@ public class UiSampleActivity extends ControllerActivity
         super.onActivityResult(requestCode, resultCode, data);
         
         if(resultCode == RESULT_OK){
-            if(requestCode == STARTUP_ACTIVITY){
-
+            switch(requestCode){
+            case STARTUP_ACTIVITY: 
                 //Get the connected Robot
                 final String robot_id = data.getStringExtra(StartupActivity.EXTRA_ROBOT_ID);
                 mRobot = RobotProvider.getDefaultProvider().findRobot(robot_id);
 
-                //Set connected Robot to the Controllers
-                setRobot(mRobot);
-                
-                // Start streaming collision detection data
-    			//// First register a listener to process the data
-    			DeviceMessenger.getInstance().addAsyncDataListener(mRobot,
-    					mCollisionListener);
-
-    			//// Now send a command to enable streaming collisions
-    			//// 
-    			ConfigureCollisionDetectionCommand.sendCommand(mRobot, ConfigureCollisionDetectionCommand.DEFAULT_DETECTION_METHOD,
-    					COLLISION_THRESHOLD, COLLISION_THRESHOLD, SPEED_THRESHOLD, SPEED_THRESHOLD, 0);
-                
-            }else if(requestCode == COLOR_PICKER_ACTIVITY){
-                
+                startApp();
+                break;
+            case CHAMELEON_ACTIVITY: 
+            	startApp(); 
+            	// fall through
+            case COLOR_PICKER_ACTIVITY:
                 if(mRobot != null){
                     //Get the colors
                     mRed   = data.getIntExtra(ColorPickerActivity.EXTRA_COLOR_RED, 0xff);
@@ -161,6 +178,21 @@ public class UiSampleActivity extends ControllerActivity
             }
         }
     }
+
+	private void startApp() {
+		//Set connected Robot to the Controllers
+		setRobot(mRobot);
+		
+		// Start streaming collision detection data
+		//// First register a listener to process the data
+		DeviceMessenger.getInstance().addAsyncDataListener(mRobot,
+				mCollisionListener);
+
+		//// Now send a command to enable streaming collisions
+		//// 
+		ConfigureCollisionDetectionCommand.sendCommand(mRobot, ConfigureCollisionDetectionCommand.DEFAULT_DETECTION_METHOD,
+				COLLISION_THRESHOLD, COLLISION_THRESHOLD, SPEED_THRESHOLD, SPEED_THRESHOLD, 0);
+	}
 
     @Override
     protected void onStop() {
@@ -188,6 +220,14 @@ public class UiSampleActivity extends ControllerActivity
     public void onSleepClick(View v){
         mSlideToSleepView.show();
     }
+    
+    /**
+     * When the user clicks on the "Chameleon Mode" button, take a picture and change the sphero color to match the color tones in the pic
+     */
+    public void onChameleonMode(View v){
+    	Intent i = new Intent(this, ChameleonActivity.class);
+        startActivityForResult(i, CHAMELEON_ACTIVITY);
+    }
 
     /**
      * When the user clicks the "Color" button, show the ColorPickerActivity
@@ -203,5 +243,16 @@ public class UiSampleActivity extends ControllerActivity
         i.putExtra(ColorPickerActivity.EXTRA_COLOR_BLUE, mBlue);
         
         startActivityForResult(i, COLOR_PICKER_ACTIVITY);
+    }
+    
+    /** Check if this device has a camera */
+    private boolean checkCameraHardware(Context context) {
+        if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
+            // this device has a camera
+            return true;
+        } else {
+            // no camera on this device
+            return false;
+        }
     }
 }
