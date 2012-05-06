@@ -4,10 +4,14 @@ import java.io.IOException;
 
 import orbotix.robot.app.ColorPickerActivity;
 import orbotix.robot.app.StartupActivity;
+import ripped.jjil.RgbImage;
+import ripped.jjil.RgbImageAndroid;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
@@ -53,7 +57,7 @@ public class ChameleonActivity extends Activity{
                 @Override
                 public void onClick(View v) {
                     // get an image from the camera
-                    mCamera.takePicture(null, mPicture, null);
+                    mCamera.takePicture(null, null, mPicture);
                 }
             }
         );
@@ -102,6 +106,7 @@ public class ChameleonActivity extends Activity{
 
 	    public void surfaceCreated(SurfaceHolder holder) {
 	        // The Surface has been created, now tell the camera where to draw the preview.
+	    	
 	        try {
 	            mCamera.setPreviewDisplay(holder);
 	            mCamera.startPreview();
@@ -163,12 +168,26 @@ public class ChameleonActivity extends Activity{
 	        
 	        Intent result_intent = new Intent();
 	        int red = 0, green = 0, blue = 0;
-			result_intent.putExtra(ColorPickerActivity.EXTRA_COLOR_RED, red);
-			result_intent.putExtra(ColorPickerActivity.EXTRA_COLOR_GREEN, green);
-			result_intent.putExtra(ColorPickerActivity.EXTRA_COLOR_BLUE, blue);
+	        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+	        Bitmap bmp = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth()>>2, bitmap.getHeight()>>2, false);
+	        RgbImage rgb = RgbImageAndroid.toRgbImage(bmp);
+	        
+	        int [] rgbdata = rgb.getData();
+	        
+	        for(int i = 0; i < rgbdata.length; i++) {
+	        	red += (rgbdata[i] >> 16) & 0xff;
+	        	green += (rgbdata[i] >> 8) & 0xff;
+	        	blue += rgbdata[i] & 0xff;
+	        }
+	        
+	        //decodeYUV420SP(pixels, data, width, height);
+			result_intent.putExtra(ColorPickerActivity.EXTRA_COLOR_RED, red / rgbdata.length);
+			result_intent.putExtra(ColorPickerActivity.EXTRA_COLOR_GREEN, green / rgbdata.length);
+			result_intent.putExtra(ColorPickerActivity.EXTRA_COLOR_BLUE, blue / rgbdata.length);
 	        result_intent.putExtra(StartupActivity.EXTRA_ROBOT_ID, mRobotID);
 			setResult(RESULT_OK, result_intent);
 			finish();
 	    }
+	    
 	};
 }
