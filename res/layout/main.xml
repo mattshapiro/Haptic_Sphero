@@ -60,20 +60,31 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
 
-    <CheckBox
-        android:id="@+id/hapticCheck"
-        android:layout_width="wrap_content"
+    <SeekBar
+        android:id="@+id/feedbackSlider"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/sleep_button"
-        android:layout_below="@+id/sleep_button"
-        android:text="Haptic Feedback" />
+        android:layout_alignRight="@+id/color_button"
+        android:layout_below="@+id/sleep_button" />
+
+    <TextView
+        android:id="@+id/feedbackLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/feedbackSlider"
+        android:layout_alignRight="@+id/feedbackSlider"
+        android:layout_below="@+id/chameleonButton"
+        android:layout_marginLeft="29dp"
+        android:text="Haptic Feedback"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <CheckBox
         android:id="@+id/stabilizeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/hapticCheck"
-        android:layout_alignLeft="@+id/hapticCheck"
+        android:layout_below="@+id/feedbackSlider"
+        android:layout_centerHorizontal="true"
         android:text="Stabilize (uncheck at your own risk!)" />
 
 </RelativeLayout>

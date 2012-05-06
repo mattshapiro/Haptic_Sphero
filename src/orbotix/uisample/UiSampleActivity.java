@@ -11,6 +11,9 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
+import android.widget.TextView;
 import orbotix.robot.app.ColorPickerActivity;
 import orbotix.robot.app.StartupActivity;
 import orbotix.robot.base.CollisionDetectedAsyncData;
@@ -44,7 +47,7 @@ public class UiSampleActivity extends ControllerActivity
     /**
      * Collision threshhold for vibration
      */
-    private final static int COLLISION_THRESHOLD = 25;
+    private int collision_thresshold = 25;
     
     /**
      * Speed thresshold to avoid vibration during direction changes
@@ -63,7 +66,9 @@ public class UiSampleActivity extends ControllerActivity
      */
     private Robot mRobot;
    
-    private CheckBox hapticCheck, stabilizeCheck;
+    private SeekBar hapticCheck;
+    private TextView hapticLabel;
+    private CheckBox stabilizeCheck;
     private boolean isHapticEnabled = true;
     
     //Colors
@@ -78,6 +83,8 @@ public class UiSampleActivity extends ControllerActivity
      * SlideToSleepView
      */
     private SlideToSleepView mSlideToSleepView;
+    
+    private final static String HAPTIC_FEEDBACK = "Haptic Feedback ";
     
     /** Called when the activity is first created. */
     @Override
@@ -101,8 +108,43 @@ public class UiSampleActivity extends ControllerActivity
         //Add the SlideToSleepView
         mSlideToSleepView = (SlideToSleepView)findViewById(R.id.slide_to_sleep);
         
-        hapticCheck = (CheckBox)findViewById(R.id.hapticCheck);
-        hapticCheck.setChecked(true);
+        hapticCheck = (SeekBar)findViewById(R.id.feedbackSlider);
+        hapticCheck.setProgress(hapticCheck.getMax() / 2);
+        hapticCheck.setOnSeekBarChangeListener(new OnSeekBarChangeListener(){
+
+			@Override
+			public void onProgressChanged(SeekBar view, int raw_progress, boolean fromUser) {
+				final int max = view.getMax();
+				float pct = (float)raw_progress / max;
+				int progress = (int)(pct * 100f);
+				if(raw_progress == 0) {
+					hapticLabel.setText(HAPTIC_FEEDBACK + "off");
+				} else if (progress > 0 && progress <= 33) {
+					hapticLabel.setText(HAPTIC_FEEDBACK + "coarse");
+				} else if (progress > 33 && progress <= 66) {
+					hapticLabel.setText(HAPTIC_FEEDBACK + "med");
+				} else if (progress > 66) {
+					hapticLabel.setText(HAPTIC_FEEDBACK + "fine");
+				}
+				collision_thresshold = 100 - progress;
+			}
+
+			@Override
+			public void onStartTrackingTouch(SeekBar arg0) {
+				
+			}
+
+			@Override
+			public void onStopTrackingTouch(SeekBar arg0) {
+					//// Now send a command to enable streaming collisions
+					//// 
+					ConfigureCollisionDetectionCommand.sendCommand(mRobot, ConfigureCollisionDetectionCommand.DEFAULT_DETECTION_METHOD,
+							collision_thresshold, collision_thresshold, SPEED_THRESHOLD, SPEED_THRESHOLD, 1);
+			}
+        	
+        });
+        hapticLabel = (TextView)findViewById(R.id.feedbackLabel);
+        hapticLabel.setText(HAPTIC_FEEDBACK + "med");
         
         stabilizeCheck = (CheckBox)findViewById(R.id.stabilizeButton);
         stabilizeCheck.setChecked(true);
@@ -138,7 +180,7 @@ public class UiSampleActivity extends ControllerActivity
 
 		public void onDataReceived(DeviceAsyncData asyncData) {
 			if (asyncData instanceof CollisionDetectedAsyncData) {
-				if(hapticCheck.isChecked()) {
+				if(hapticCheck.getProgress() > 0) {
 					final CollisionDetectedAsyncData collisionData = (CollisionDetectedAsyncData) asyncData;
 					
 					// Update the UI with the collision data
@@ -193,7 +235,7 @@ public class UiSampleActivity extends ControllerActivity
 		//// Now send a command to enable streaming collisions
 		//// 
 		ConfigureCollisionDetectionCommand.sendCommand(mRobot, ConfigureCollisionDetectionCommand.DEFAULT_DETECTION_METHOD,
-				COLLISION_THRESHOLD, COLLISION_THRESHOLD, SPEED_THRESHOLD, SPEED_THRESHOLD, 1);
+				collision_thresshold, collision_thresshold, SPEED_THRESHOLD, SPEED_THRESHOLD, 1);
 	}
 
     @Override
