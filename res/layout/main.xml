@@ -28,6 +28,15 @@
         android:layout_alignParentTop="true"
         android:onClick="onColorClick"
         android:text="Color" />
+    
+    <Button
+        android:id="@+id/chameleonButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/sleep_button"
+        android:layout_centerHorizontal="true"
+        android:onClick="onChameleonMode"
+        android:text="Chameleon Mode" />
 
     <orbotix.robot.widgets.joystick.JoystickView
         android:id="@+id/joystick"
@@ -50,15 +59,6 @@
         android:id="@+id/calibration"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent" />
-
-    <Button
-        android:id="@+id/chameleonButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/sleep_button"
-        android:layout_centerHorizontal="true"
-        android:onClick="onChameleonMode"
-        android:text="Chameleon Mode" />
 
     <CheckBox
         android:id="@+id/hapticCheck"
