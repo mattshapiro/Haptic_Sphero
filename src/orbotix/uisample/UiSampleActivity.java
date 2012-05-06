@@ -126,7 +126,8 @@ public class UiSampleActivity extends ControllerActivity
     @Override
     protected void onStart() {
         super.onStart();
-        if(mRobot==null){
+        if(mRobot==null)
+        {
 	        //Start StartupActivity to connect to Robot
 	        Intent i = new Intent(this, StartupActivity.class);
 	        startActivityForResult(i, STARTUP_ACTIVITY);
@@ -159,11 +160,12 @@ public class UiSampleActivity extends ControllerActivity
                 //Get the connected Robot
                 final String robot_id = data.getStringExtra(StartupActivity.EXTRA_ROBOT_ID);
                 mRobot = RobotProvider.getDefaultProvider().findRobot(robot_id);
-
                 startApp();
                 break;
-            case CHAMELEON_ACTIVITY: 
-            	startApp(); 
+            case CHAMELEON_ACTIVITY:
+            	final String robot_id2 = data.getStringExtra(StartupActivity.EXTRA_ROBOT_ID);
+                mRobot = RobotProvider.getDefaultProvider().findRobot(robot_id2);
+            	//startApp(); 
             	// fall through
             case COLOR_PICKER_ACTIVITY:
                 if(mRobot != null){
@@ -191,7 +193,7 @@ public class UiSampleActivity extends ControllerActivity
 		//// Now send a command to enable streaming collisions
 		//// 
 		ConfigureCollisionDetectionCommand.sendCommand(mRobot, ConfigureCollisionDetectionCommand.DEFAULT_DETECTION_METHOD,
-				COLLISION_THRESHOLD, COLLISION_THRESHOLD, SPEED_THRESHOLD, SPEED_THRESHOLD, 0);
+				COLLISION_THRESHOLD, COLLISION_THRESHOLD, SPEED_THRESHOLD, SPEED_THRESHOLD, 1);
 	}
 
     @Override
@@ -226,6 +228,7 @@ public class UiSampleActivity extends ControllerActivity
      */
     public void onChameleonMode(View v){
     	Intent i = new Intent(this, ChameleonActivity.class);
+    	i.putExtra(StartupActivity.EXTRA_ROBOT_ID, mRobot.getUniqueId());
         startActivityForResult(i, CHAMELEON_ACTIVITY);
     }
 

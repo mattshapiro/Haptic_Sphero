@@ -3,6 +3,7 @@ package orbotix.uisample;
 import java.io.IOException;
 
 import orbotix.robot.app.ColorPickerActivity;
+import orbotix.robot.app.StartupActivity;
 
 import android.app.Activity;
 import android.content.Context;
@@ -30,15 +31,16 @@ public class ChameleonActivity extends Activity{
 
 	private Camera mCamera;
     private CameraPreview mPreview;
+    private String mRobotID;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
         setContentView(R.layout.chameleon);
         // Create an instance of Camera
         mCamera = getCameraInstance();
-        
+        //mRobotID = savedInstanceState.getString(StartupActivity.EXTRA_ROBOT_ID);
+        mRobotID = this.getIntent().getExtras().getString(StartupActivity.EXTRA_ROBOT_ID);
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this);
         FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
@@ -164,6 +166,7 @@ public class ChameleonActivity extends Activity{
 			result_intent.putExtra(ColorPickerActivity.EXTRA_COLOR_RED, red);
 			result_intent.putExtra(ColorPickerActivity.EXTRA_COLOR_GREEN, green);
 			result_intent.putExtra(ColorPickerActivity.EXTRA_COLOR_BLUE, blue);
+	        result_intent.putExtra(StartupActivity.EXTRA_ROBOT_ID, mRobotID);
 			setResult(RESULT_OK, result_intent);
 			finish();
 	    }

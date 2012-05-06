@@ -38,8 +38,7 @@
         
         <activity android:name="ChameleonActivity"
 	          android:screenOrientation="landscape"
-	          android:launchMode="singleTop">
-		</activity>
-
+	          android:launchMode="singleTop"
+	          android:theme="@android:style/Theme.Translucent"/>
     </application>
 </manifest> 
