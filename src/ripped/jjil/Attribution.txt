@@ -1,0 +1,2 @@
+In the interest of the time limits of the hack tour, I ripped off and badly mangled much of "Jon's Java Image Library" http://code.google.com/p/jjil/
+This code was needed to convert the compressed data coming in to the Android camera's PictureCallback into RGB values.

@@ -43,7 +43,6 @@ public class ChameleonActivity extends Activity{
         setContentView(R.layout.chameleon);
         // Create an instance of Camera
         mCamera = getCameraInstance();
-        //mRobotID = savedInstanceState.getString(StartupActivity.EXTRA_ROBOT_ID);
         mRobotID = this.getIntent().getExtras().getString(StartupActivity.EXTRA_ROBOT_ID);
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this);
@@ -154,6 +153,7 @@ public class ChameleonActivity extends Activity{
 	    @Override
 	    public void onPictureTaken(byte[] data, Camera camera) {
 
+	    	// v2 plan:
 	    	// scan an interior ring of the data for color values...
 	    	// leave out the center in case sphero is there
 	    	/**
@@ -169,6 +169,7 @@ public class ChameleonActivity extends Activity{
 	        Intent result_intent = new Intent();
 	        int red = 0, green = 0, blue = 0;
 	        Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+	        // scale the bitmap to avoid blowing the heap
 	        Bitmap bmp = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth()>>2, bitmap.getHeight()>>2, false);
 	        RgbImage rgb = RgbImageAndroid.toRgbImage(bmp);
 	        
